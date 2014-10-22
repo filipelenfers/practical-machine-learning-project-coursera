@@ -1,0 +1,101 @@
+---
+title: "Practical Machine Learning Course Project - Personal Activity Prediction"
+author: "Filipe Pais Lenfers"
+date: "22 de outubro de 2014"
+output: html_document
+---
+
+#Summary
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this report, we will use the data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <http://groupware.les.inf.puc-rio.br/har>. 
+
+In this report we construct a machine learning model using Random Forest algorithm to predict the outcome of the data.
+
+#Libraries
+
+We are going to use `caret` to build a our Random Forest model, and `doParallel` to accelerate the training by parallel computing.
+
+```{r, results='hide',message=FALSE,warning=FALSE}
+library(caret)
+library(doParallel)
+```
+
+#Loading and Cleaning Data
+
+Setting the seed for better reproducibility.
+```{r}
+set.seed(12345)
+```
+
+Read the data files considering the strings `#DIV/0!`, `<NA>`, `NA`, empty string and white space as NA.
+```{r,cache=TRUE}
+training_data <- read.csv("pml-training.csv", na.strings= c("#DIV/0!","<NA>","NA",""," "))
+testing_data <- read.csv("pml-testing.csv", na.strings= c("#DIV/0!","<NA>","NA",""," "))
+```
+
+Remove the first 7 columns that are not related to the measures. 
+```{r,cache=TRUE}
+training_data <- training_data[,-c(1,2,3,4,5,6,7)]
+testing_data <- testing_data[,-c(1,2,3,4,5,6,7)]
+```
+
+Remove columns with NAs.
+```{r,cache=TRUE}
+training_data_NAs <- apply(training_data, 2, function(x) {sum(is.na(x))})
+
+training_clean <- training_data[,which(training_data_NAs == 0)]
+testing_clean <- testing_data[,which(training_data_NAs == 0)]
+testing <- testing_clean
+```
+
+#Training the model
+
+Separate the training data into 2 datasets, one for training (with 70% of the data) and other to validate (with 30% of the data) the model.
+```{r,cache=TRUE}
+inTrain <- createDataPartition(training_clean$classe, p=0.70, list=FALSE)
+training <- training_clean[inTrain,]
+validation <- training_clean[-inTrain,]
+```
+
+Create a cluster with `doParallel` to use 4 parallel threads.
+```{r}
+cl <- makeCluster(4)
+registerDoParallel(4)
+```
+
+Train the model with the Random Forest algorithm using crossvalidation.
+```{r,cache=TRUE,message=FALSE,warning=FALSE}
+model <- train(classe~.,data=training, method="rf",trControl=trainControl(method = "cv"))
+model
+```
+
+Stop the cluster.
+```{r}
+stopCluster(cl)
+```
+
+#Validate the model
+
+Validate the model using the validation dataset.
+```{r,cache=TRUE}
+predict <- predict(model, validation)
+confusionMatrix(validation$classe, predict)
+```
+
+#Predictions
+
+Create the files for the `Prediction Assignment Submission`.
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+predict_testing <- predict(model, testing)
+
+pml_write_files(predict_testing)
+```
+
