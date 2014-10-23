@@ -55,7 +55,6 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="header">
 <h1 class="title">Practical Machine Learning Course Project - Personal Activity Prediction</h1>
 <h4 class="author"><em>Filipe Pais Lenfers</em></h4>
-<h4 class="date"><em>22 de outubro de 2014</em></h4>
 </div>
 
 
@@ -121,30 +120,32 @@ model</code></pre>
 ## The final value used for the model was mtry = 2.</code></pre>
 <p>Stop the cluster.</p>
 <pre class="r"><code>stopCluster(cl)</code></pre>
+<p>The crossvalidation results show a perfect accuracy, lets validate the model to check for overfitting.</p>
 </div>
 <div id="validate-the-model" class="section level1">
 <h1>Validate the model</h1>
 <p>Validate the model using the validation dataset.</p>
 <pre class="r"><code>predict &lt;- predict(model, validation)
-confusionMatrix(validation$classe, predict)</code></pre>
+cm &lt;- confusionMatrix(validation$classe, predict)
+cm</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
 ##          A 1673    1    0    0    0
-##          B   13 1120    6    0    0
+##          B   14 1119    6    0    0
 ##          C    0   16 1007    3    0
 ##          D    0    0   25  939    0
 ##          E    0    0    0    3 1079
 ## 
 ## Overall Statistics
 ##                                         
-##                Accuracy : 0.989         
-##                  95% CI : (0.986, 0.991)
-##     No Information Rate : 0.286         
+##                Accuracy : 0.988         
+##                  95% CI : (0.985, 0.991)
+##     No Information Rate : 0.287         
 ##     P-Value [Acc &gt; NIR] : &lt;2e-16        
 ##                                         
-##                   Kappa : 0.986         
+##                   Kappa : 0.985         
 ##  Mcnemar's Test P-Value : NA            
 ## 
 ## Statistics by Class:
@@ -152,12 +153,13 @@ confusionMatrix(validation$classe, predict)</code></pre>
 ##                      Class: A Class: B Class: C Class: D Class: E
 ## Sensitivity             0.992    0.985    0.970    0.994    1.000
 ## Specificity             1.000    0.996    0.996    0.995    0.999
-## Pos Pred Value          0.999    0.983    0.981    0.974    0.997
+## Pos Pred Value          0.999    0.982    0.981    0.974    0.997
 ## Neg Pred Value          0.997    0.996    0.994    0.999    1.000
-## Prevalence              0.286    0.193    0.176    0.161    0.183
+## Prevalence              0.287    0.193    0.176    0.161    0.183
 ## Detection Rate          0.284    0.190    0.171    0.160    0.183
 ## Detection Prevalence    0.284    0.194    0.174    0.164    0.184
-## Balanced Accuracy       0.996    0.991    0.983    0.994    1.000</code></pre>
+## Balanced Accuracy       0.996    0.990    0.983    0.994    1.000</code></pre>
+<p>The validation show an expected accuracy of 0.9884.</p>
 </div>
 <div id="predictions" class="section level1">
 <h1>Predictions</h1>
@@ -170,9 +172,13 @@ confusionMatrix(validation$classe, predict)</code></pre>
   }
 }
 
-predict_testing &lt;- predict(model, testing)
-
-pml_write_files(predict_testing)</code></pre>
+predict_testing &lt;- predict(model, testing)</code></pre>
+<pre><code>## Loading required package: randomForest</code></pre>
+<pre><code>## Warning: package 'randomForest' was built under R version 3.1.1</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code>pml_write_files(predict_testing)</code></pre>
+<p>All the files generated above were all submited and found to be correct.</p>
 </div>
 
 

@@ -1,7 +1,6 @@
 ---
 title: "Practical Machine Learning Course Project - Personal Activity Prediction"
 author: "Filipe Pais Lenfers"
-date: "22 de outubro de 2014"
 output: html_document
 ---
 
@@ -74,13 +73,19 @@ Stop the cluster.
 stopCluster(cl)
 ```
 
+The crossvalidation results show a perfect accuracy, lets validate the model to check for overfitting.
+
 #Validate the model
 
 Validate the model using the validation dataset.
 ```{r,cache=TRUE}
 predict <- predict(model, validation)
-confusionMatrix(validation$classe, predict)
+cm <- confusionMatrix(validation$classe, predict)
+cm
 ```
+
+The validation show an expected accuracy of `r cm$overall["Accuracy"]`.
+
 
 #Predictions
 
@@ -99,3 +104,4 @@ predict_testing <- predict(model, testing)
 pml_write_files(predict_testing)
 ```
 
+All the files generated above were all submited and found to be correct.
